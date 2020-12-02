@@ -158,6 +158,7 @@ namespace Info_Write_Mission
             // call the disconnect method
             //
             myFinch.disConnect();
+
         }
         #region USER INFORMATION WRITE
         private static void UserInformationWrite(Finch myFinch)
