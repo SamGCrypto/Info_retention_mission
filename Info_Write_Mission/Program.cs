@@ -3,13 +3,27 @@ using System;
 using System.Threading;
 using System.Runtime;
 using System.Dynamic;
-
-namespace Alarm_System
+using System.IO;
+using System.Collections.Generic;
+namespace Info_Write_Mission
 {
+    enum Command
+    {
+        MOVEFORWARD,
+        MOVEBACKWARD,
+        STOP,
+        WAIT,
+        LEDON,
+        LEDOFF,
+        STOPMOTORS,
+        TURNRIGHT,
+        TURNLEFT,
+        SCREAM,
+        GETTEMPERATURE,
+        DONE
+    }
     class Program
     {
-        private static (int[], int[]) sensorData;
-
         // *************************************************************
         // Application:     Finch Starter Solution
         // Author:          Velis, John E
@@ -20,7 +34,7 @@ namespace Alarm_System
         //Application Additions Talent Show, Sensors, and a few others
         //Author: Sam G.
         //Description
-        //Date Edited addition.10/1/2020
+        //Date Edited addition.12/2/2020
         //***************************************************************
         static void Main(string[] args)
         {
@@ -54,7 +68,6 @@ namespace Alarm_System
             {
                 DisplayMainMenu();
                 caseSwitch = GatherInput();
-                Console.WriteLine($"Option {caseSwitch} was selected.");
                 Console.ReadKey();
                 switch (caseSwitch)
                 {
@@ -82,6 +95,10 @@ namespace Alarm_System
                     case "f":
                         Console.Clear();
                         UserProgrammingDisplayMainMenuScreen(myFinch);
+                        break;
+                    case "g":
+                        Console.Clear();
+                        UserInformationWrite(myFinch);
                         break;
                     case "quit":
                         Console.WriteLine("Thank you for using our robot!");
@@ -142,49 +159,110 @@ namespace Alarm_System
             //
             myFinch.disConnect();
         }
-        #region VOICE CONTROLLER TEST
+        #region USER INFORMATION WRITE
+        private static void UserInformationWrite(Finch myFinch)
+        {
+            bool endNow = false;
+            do {
+            Console.Clear();
+            DisplayUserInformationWriteMenu();
+            string caseSwitch = GatherInput();
+            switch (caseSwitch)
+            {
+                case "a":
+                        Console.Clear();
+                        WriteCilmateData(myFinch);
+                        break;
+                case "b":
+                        Console.Clear();
+                        ReadDocument();
+                        break;
+                case "quit":
+                        Console.Clear();
+                        endNow = true;
+                    break;
+                        
+                }
+        }while(!endNow);
+        }
 
+        private static void ReadDocument()
+        {
+            string dataPath = @"Data\TextFile1.txt";
+            string fileText;
+            string[] fileTextArray;
 
+            //
+            //Read Theme from Data File(Single Line)
+            //
+            fileText = File.ReadAllText(dataPath);
 
+            fileTextArray = fileText.Split('.');
+            for (int i = 0; i < fileTextArray.Length; i++)
+            {
+                Console.WriteLine(fileTextArray[i]);
+            }
+            Console.WriteLine("");
+            Console.WriteLine("Press any key to continue.");
+            Console.ReadKey();
+        }
+        
+        private static void WriteCilmateData(Finch myFinch)
+        {
+            string dataPath = @"Data\TextFile1.txt";
+            List<string>dataTaken = new List<string>();
+            int dataPoint;
+            double frequency, tempC;
 
+            Console.WriteLine("Please enter in the amount of times you want data taken.");
+            double.TryParse(Console.ReadLine(), out frequency);
+            Console.WriteLine("How many data points do you want taken.");
+            int.TryParse(Console.ReadLine(), out dataPoint);
+            for (int i = 0; i < dataPoint; i++)
+            {
+                Console.Clear();
+                int lightDataAvg = myFinch.getLeftLightSensor() + myFinch.getRightLightSensor() / 2;
+                tempC = myFinch.getTemperature();
+                string lineText = $"Data point {i+1}:  {DateTime.Now} The Temperature in Celsicus: {tempC}  The light avg: {lightDataAvg}.";
+                Console.WriteLine(lineText);
+                dataTaken.Add(lineText);
+                myFinch.wait((int)(frequency * 1000));
+            }
+            string[] str = dataTaken.ToArray();
+            File.WriteAllLines(dataPath, str);
+        }
+
+        private static void DisplayUserInformationWriteMenu()
+        {
+            DisplayHeader("Information Gathering and Retaining");
+            Console.WriteLine("a)To active data collection.");
+            Console.WriteLine("b) Review written data.");
+            Console.WriteLine("quit to exit the program.");
+        }
         #endregion
-
         #region USER PROGRAMMING
 
         //
         //USER PROGRAMMING REGION
         //
-        public enum Command
-        {
-            MOVEFORWARD,
-            MOVEBACKWARD,
-            STOP,
-            WAIT,
-            LEDON,
-            LEDOFF,
-            STOPMOTORS,
-            TURNRIGHT,
-            TURNLEFT,
-            SCREAM,
-            GETTEMPERATURE,
-            DONE
-        }
 
         private static void UserProgrammingDisplayMainMenuScreen(Finch myFinch)
         {
+            //
+            //Initalize the robotic programming varibles 
+            //
             (int motorSpeed, int ledBrightness, double waitSeconds) commandPrompt;
             commandPrompt = (120, 60, 5);
 
-            Command command = new Command();
             string optionSelect = null;
-            string[] listOfCommands = null;
+            List<string> listOfCommands = new List<string>();
             bool quitMenu = false;
             Console.WriteLine("Opening option menu.");
             myFinch.wait(5000);
-            Console.Clear();
-            DisplayMenuUsuerProgramming();
             do
             {
+                Console.Clear();
+                DisplayMenuUsuerProgramming();
                 optionSelect = Console.ReadLine();
                 switch (optionSelect)
                 {
@@ -212,8 +290,10 @@ namespace Alarm_System
                 }
             } while (!quitMenu);
         }
-
-        private static void RunCommands(string[] listOfCommands, (int motorSpeed, int ledBrightness, double waitSeconds) commandPrompt, Finch myFinch)
+        //
+        //Function to run all the commands from the list 
+        //
+        private static void RunCommands(List<string> listOfCommands, (int motorSpeed, int ledBrightness, double waitSeconds) commandPrompt, Finch myFinch)
         {
             int i = 0;
             int motorSetting = commandPrompt.motorSpeed;
@@ -257,24 +337,30 @@ namespace Alarm_System
                         Console.WriteLine($"{myFinch.getTemperature()} is the current temperature in Celsius.");
                         break;
                 }
-            } while (i < listOfCommands.Length);
+                i++;
+            } while (i < listOfCommands.Count);
         }
-
-        private static void DisplayAllCommands(string[] listOfCommands)
+        //
+        //Display all the commands that have been entered
+        //
+        private static void DisplayAllCommands(List<string> listOfCommands)
         {
             DisplayHeader("Display Commands");
-            for (int i = 0; i < listOfCommands.Length; i++)
+            for (int i = 0; i < listOfCommands.Count; i++)
             {
                 Console.WriteLine($"Command number {i + 1} is: {listOfCommands[i]}");
             }
-            Console.WriteLine($"Total Commands {listOfCommands.Length}");
+            Console.WriteLine($"Total Commands {listOfCommands.Count}");
+            Console.WriteLine("Press any key to continue.");
+            Console.ReadKey();
         }
-
-        private static string[] EnterCommandSequence()
+        //
+        //Enter in the sequence of commands the user wishes to run
+        //
+        private static List<string> EnterCommandSequence()
         {
             bool goOn = false;
-            string[] commands;
-            commands = null;
+            List<string> commands = new List<string>();
             int i = 0;
             Console.WriteLine("Please enter in the command sections.");
             Console.WriteLine("Here are the commnads below you can pick");
@@ -294,14 +380,16 @@ namespace Alarm_System
                     }
                     else
                     {
-                        commands.SetValue(userPrompt, i);
+                        commands.Add(userPrompt);
                         i++;
                     }
                 }
             } while (!goOn);
             return commands;
         }
-
+        //
+        //Set in the parameters for the motor speed, led brightness and seconds waited between commands
+        //
         static (int motorSpeed, int ledBrightness, double waitSeconds) UserProgrammingDisplayGetCommandPrompt()
         {
             (int motorSpeed, int ledBrightness, double waitSeconds) commandPrompt;
@@ -314,7 +402,9 @@ namespace Alarm_System
             double.TryParse(Console.ReadLine(), out commandPrompt.waitSeconds);
             return commandPrompt;
         }
-
+        //
+        //Displaying the menu for the user as well as explaining the default system params
+        //
         private static void DisplayMenuUsuerProgramming()
         {
             DisplayHeader("Main Menu: User Interface.");
@@ -322,54 +412,57 @@ namespace Alarm_System
             Console.WriteLine("If option a not selected then it will be defaulted to 120, 60, 5.");
             Console.WriteLine("b) Enter in command lists to use.");
             Console.WriteLine("c) Display all the commands you have entered.");
+            Console.WriteLine("d) Begin running robot.");
         }
         #endregion
         #region ALARM SYSTEM
+        //
+        //This is the main protocol of the Alarm System for the Finch Robot
+        //
         private static void AlarmSystemAlert(Finch myFinch)
         {
+            //
+            //Initialize all the variables that are required for the finch robot
+            //
             string optionSelect = null;
             bool sentryMode = true;
             int sentrySec = 0;
             int sentryFrequency = 0;
-            int userChoice = 0;
-            int minMax = 0;
-            int[] dataAmountSentryTakes = new int[userChoice];
-            Console.WriteLine("Alarm System being prepped for arming.");
-            myFinch.wait(5000);
+            int minimum = 0;
+            int maximum = 0;
             do
             {
                 Console.Clear();
                 DisplayAlarm();
                 optionSelect = Console.ReadLine().ToLower();
+                (int[], int[]) sensorData;
                 switch (optionSelect)
                 {
                     case "a":
                         sentrySec = SentryTimerSettings();
-                        Console.WriteLine($"{sentrySec} of how many seconds there are.");
-                        Console.ReadKey();
                         break;
                     case "b":
                         sentryFrequency = SentryDataTakenFrequencySettings();
-                        Console.WriteLine($"{sentryFrequency} of how many datapoints will be taken there are.");
-                        Console.ReadKey();
+                        sensorData.Item1 = new int[sentryFrequency];
+                        sensorData.Item2 = new int[sentryFrequency];
                         break;
                     case "c":
-                        userChoice = SentryDataTakenAmount();
-                        Console.WriteLine($"{userChoice} how long the list will be.");
+                        minimum = SentryMinAlarmAlert();
+                        maximum = SentryMaxAlarmAlert();
                         break;
                     case "d":
-                        minMax = SentryAlarmAlert();
-                        break;
-                    case "e":
-                        if (sentrySec <= 0 || sentryFrequency <= 0 || userChoice <= 0)
+                        if (sentrySec <= 0 || sentryFrequency <= 0)
                         {
                             Console.WriteLine("Error you have entered in a null amount, sentry mode cannot be zero.");
                         }
                         else
                         {
-                            (int[], int[]) sensorData = ExecuteSentryMode(sentrySec, sentryFrequency, dataAmountSentryTakes, myFinch, minMax);
+                            sensorData = ExecuteSentryMode(sentrySec, sentryFrequency, myFinch, minimum, maximum);
                         }
                         break;
+                    //case "e":
+                      //  DisplaySentryData(sensorData);
+                        //break;
                     case "quit":
                         Console.WriteLine("Sentry Mode: Disengaging!");
                         myFinch.noteOn(500);
@@ -381,84 +474,102 @@ namespace Alarm_System
             } while (sentryMode);
         }
 
-        private static int SentryAlarmAlert()
+        private static void DisplaySentryData((int[], int[]) sensorData)
+        {
+            for (int i = 0; i < sensorData.Item1.Length; i++)
+            {
+                Console.WriteLine($"Data point {i} for the left sensor is {sensorData.Item1[i]} and right is {sensorData.Item2[i]}");
+            }
+        }
+
+        //
+        //Set up the minimum alarm system alert
+        //
+        private static int SentryMinAlarmAlert()
         {
             int i;
-            Console.WriteLine("Enter in the alert range for the sensors.");
+            Console.WriteLine("Enter in the minimum alert range for the sensors.");
+            int.TryParse(Console.ReadLine(), out i);
+            return i;
+        }
+        //
+        //Set the maximum range
+        //
+        private static int SentryMaxAlarmAlert()
+        {
+            int i;
+            Console.WriteLine("Enter in the maximum alert range for the sensors.");
             int.TryParse(Console.ReadLine(), out i);
             return i;
         }
 
-        private static (int[], int[]) ExecuteSentryMode(int sentrySec, int sentryFrequency, int[] dataAmountSentryTakes, Finch myFinch, int minMax)
+        //
+        //This function executes the main sentry protocols
+        //It will return a Tuple function which can be displayed later on
+        //
+        private static (int[], int[]) ExecuteSentryMode(int sentrySec, int sentryFrequency, Finch myFinch, int min, int max)
         {
             bool finished = false;
-            int[] dataAmountSentryTakesRight = new int[dataAmountSentryTakes.Length];
             (int[], int[]) sensoryData;
-
+            int left, right;
+            int[] dataLeft, dataRight;
+            dataRight = new int[sentryFrequency];
+            dataLeft = new int[sentryFrequency];
+            int i = 0;
             DisplayHeader("Sentry Mode.");
+            //
+            //Continuation prompt
+            //
             Console.WriteLine("sentry mode will begin, press any key to continue.");
             Console.ReadKey();
+            //
+            //Function of the sentry begins here
+            //
             do
             {
-                int i = 0;
                 if (i == sentryFrequency)
                 {
                     finished = true;
                 }
                 else
                 {
-                    dataAmountSentryTakes[i] = myFinch.getLeftLightSensor();
-                    dataAmountSentryTakesRight[i] = myFinch.getRightLightSensor();
+                    //
+                    //Grabbing both of the variables in order to test them to make sure they aren't setting off the alarm
+                    //if correct it will put the variables into a list, if not it will spit out a warning ending the process.
+                    left = myFinch.getLeftLightSensor();
+                    right = myFinch.getRightLightSensor();
+                    if (max >= left && left >= min && max >= right && right >= min)
+                    {
+                        dataLeft[i] = left;
+                        dataRight[i] = right;
+                        Console.WriteLine(left + " " + right + "light level of the room.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("WARNING ALARM TRIPPED!");
+                        finished = true;
+                    }
                     myFinch.wait(sentrySec * 1000);
-                    i++;
                 }
-
+                Console.WriteLine(i);
+                i++;
             } while (!finished);
-            sensoryData = (dataAmountSentryTakes, dataAmountSentryTakesRight);
+            //
+            //
+            //
+            sensoryData.Item1 = dataLeft;
+            sensoryData.Item2 = dataRight;
             return sensoryData;
         }
 
 
         //
-        //This method will return the size of the list that will be generated.
-        //
-        private static int SentryDataTakenAmount()
-        {
-            bool trueStatement = false;
-            int listSize = 0;
-            Console.Clear();
-            DisplayHeader("\t\tData Amount Taken.");
-            do
-            {
-                Console.WriteLine();
-                Console.WriteLine("Enter in the amount of data you wish to gather.");
-                Console.WriteLine();
-                int.TryParse(Console.ReadLine(), out listSize);
-                if (int.TryParse(Console.ReadLine(), out listSize) == false)
-                {
-                    Console.WriteLine("Error: Please try again.");
-                }
-                if (int.TryParse(Console.ReadLine(), out listSize) == true)
-                {
-                    trueStatement = true;
-                }
-            } while (!trueStatement);
-            if (listSize <= 3)
-            {
-                Console.WriteLine("Setting list size to default value of 3.");
-                listSize = 3;
-            }
-            Console.WriteLine($"List is {listSize} items long.");
-            return listSize;
-        }
-
-        //
-        //This will create the amount of time that people wish entered.
+        //This will create the amount of time that people wish between datapoints.
         //
         private static int SentryTimerSettings()
         {
             int sentrySec = 0;
-            Console.WriteLine("Please select the number of seconds you would like the sentry to be operational.");
+            Console.WriteLine("Please select the number of seconds you would like between data points.");
             int.TryParse(Console.ReadLine(), out sentrySec);
             return sentrySec;
         }
@@ -477,7 +588,6 @@ namespace Alarm_System
             return sentryFreq;
         }
         #endregion
-
         private static void TestFinchConnection(Finch myFinch)
         {
             if (myFinch.connect() == true)
@@ -524,8 +634,6 @@ namespace Alarm_System
 
 
         #endregion
-
-
         #region TALENT SHOW
         //
         //Talent Show menu selection
@@ -640,8 +748,6 @@ namespace Alarm_System
             myFinch.noteOff();
         }
         #endregion
-
-
         #region LIGHT DATA RECORDER
         private static void DisplayLightDataRecorder(Finch myFinch)
         {
@@ -816,9 +922,6 @@ namespace Alarm_System
         }
 
         #endregion
-
-
-
         #region DATA RECORDER
         private static void DisplayDataRecorder(Finch myFinch)
         {
@@ -974,6 +1077,7 @@ namespace Alarm_System
             Console.WriteLine();
             Console.WriteLine($"Number of Data Points: {numberOfDataPoints}");
             Console.ReadKey();
+            Console.Clear();
 
             return numberOfDataPoints;
         }
@@ -982,7 +1086,6 @@ namespace Alarm_System
 
 
         #endregion
-
         #region DISPLAY SETUP
 
         //
@@ -1006,7 +1109,7 @@ namespace Alarm_System
             Console.WriteLine("Welcome to this our simple menu here!");
             Console.WriteLine("Please take a look at the menu and sample one of our many options.");
             Console.WriteLine("Enjoy.");
-            Thread.Sleep(4000);
+            Thread.Sleep(2000);
             Console.Clear();
         }
 
@@ -1018,7 +1121,6 @@ namespace Alarm_System
             Console.WriteLine("Please enter a response below based on the options above.");
             string a = Console.ReadLine();
             return a;
-
         }
         //
         //Simple display header function
@@ -1040,6 +1142,8 @@ namespace Alarm_System
             Console.WriteLine("c. Data Collection.");
             Console.WriteLine("d. Light Data Collection.");
             Console.WriteLine("e. Finch Sentry Mode.");
+            Console.WriteLine("f. User Program.");
+            Console.WriteLine("g. Write Data to Text.");
             Console.WriteLine("quit to quit.");
         }
         private static void DisplayTalentShow()
@@ -1066,4 +1170,3 @@ namespace Alarm_System
         #endregion
     }
 }
-

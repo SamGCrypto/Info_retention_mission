@@ -1,0 +1,60 @@
+Data point1:  11/15/2020 6:47:48 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 50.
+Data point2:  11/15/2020 6:47:53 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 50.
+Data point3:  11/15/2020 6:47:58 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 48.
+Data point4:  11/15/2020 6:48:03 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 33.
+Data point5:  11/15/2020 6:48:08 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 47.
+Data point6:  11/15/2020 6:48:13 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 50.
+Data point7:  11/15/2020 6:48:18 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 48.
+Data point8:  11/15/2020 6:48:24 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 15.
+Data point9:  11/15/2020 6:48:29 PM
+ The Temperature in Celsicus: 23.75 
+With the light avg being 50.
+Data point10:  11/15/2020 6:48:34 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 7.
+Data point11:  11/15/2020 6:48:39 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 49.
+Data point12:  11/15/2020 6:48:44 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 50.
+Data point13:  11/15/2020 6:48:49 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 48.
+Data point14:  11/15/2020 6:48:54 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 48.
+Data point15:  11/15/2020 6:48:59 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 47.
+Data point16:  11/15/2020 6:49:04 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 48.
+Data point17:  11/15/2020 6:49:09 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 50.
+Data point18:  11/15/2020 6:49:14 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 49.
+Data point19:  11/15/2020 6:49:20 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 50.
+Data point20:  11/15/2020 6:49:25 PM
+ The Temperature in Celsicus: 23.3333333333333 
+With the light avg being 50.
